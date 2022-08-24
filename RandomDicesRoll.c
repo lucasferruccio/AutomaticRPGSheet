@@ -4,7 +4,9 @@
 #include <time.h>
 #include <ctype.h>
 
-int result_dice[], mod = 0, mod_place, adv_dis = 0, advdis_place;
+int result_dice[50], mod = 0, mod_place, adv_dis = 0, advdis_place;
+
+int checkdice(char dice[]);
 
 void roll_dice(int dice, int dice_quantity);
 
@@ -14,9 +16,9 @@ int dice_quantity(char dice[], int split);
 
 int dice_value(char dice[], int split);
 
-int mod_calc(char dice[], int mod_place);
+int mod_calc(char dice[]);
 
-void result(int modifier, int dice_quantity);
+void result(int modifier, int dice_quantity, int value);
 
 void calc_advdis(char dice[]);
 
@@ -120,7 +122,7 @@ void split_dice(char dice[])
         {
             mod = 1;
             mod_place = i;
-            mod_value = mod_calc(dice, mod_place);
+            mod_value = mod_calc(dice);
         }
         if (dice[i] == 'k')
         {
@@ -131,7 +133,7 @@ void split_dice(char dice[])
     quantity = dice_quantity(dice, split);
     value = dice_value(dice, split);
     roll_dice(value, quantity);
-    result(mod_value, quantity);
+    result(mod_value, quantity, value);
     return;
 }
 
@@ -201,7 +203,7 @@ int dice_value(char dice[], int split)
 void roll_dice(int dice, int dice_quantity)
 {
     // Roda os dados
-    int aux = mod;
+    int aux2 = mod;
     srand(time(NULL));
     printf("Valores dos Dados:");
     int j = 0;
@@ -212,12 +214,12 @@ void roll_dice(int dice, int dice_quantity)
         printf(" {%i}", result_dice[j]);
         j++;
     }
-    mod = aux;
+    mod = aux2;
     printf("\n");
     return;
 }
 
-int mod_calc(char dice[], int mod_place)
+int mod_calc(char dice[])
 {
     // Calcula o modificador dos dados
     char mod_aux[10];
@@ -231,25 +233,11 @@ int mod_calc(char dice[], int mod_place)
     return atoi(mod_aux);
 }
 
-void result(int modifier, int dice_quantity)
+void result(int modifier, int dice_quantity, int value)
 {
-    // Soma os valores dos dados caso não haja vantagens e soma os modificador caso exista
     int final;
-    if (adv_dis == 0)
-    {
-        int soma = 0;
-        for (int i = 0; i < dice_quantity; i++)
-        {
-            soma += result_dice[i];
-        }
-        if (mod == 1)
-        {
-            soma += modifier;
-        }
-        final = soma;
-    }
     // Pega o maior caso seja com vantagem
-    else if (adv_dis == 1)
+    if (adv_dis == 1)
     {
         int high = 0;
         for (int i = 0; i < dice_quantity; i++)
@@ -268,7 +256,7 @@ void result(int modifier, int dice_quantity)
     // Pega o menor caso tenha desvantagem
     else if (adv_dis == 2)
     {
-        int low = dice_value;
+        int low = value;
         for (int i = 0; i < dice_quantity; i++)
         {
             if (result_dice[i] < low)
@@ -281,6 +269,20 @@ void result(int modifier, int dice_quantity)
             low += modifier;
         }
         final = low;
+    }
+    // Soma os valores dos dados caso não haja vantagens e soma os modificador caso exista
+    else
+    {
+        int soma = 0;
+        for (int i = 0; i < dice_quantity; i++)
+        {
+            soma += result_dice[i];
+        }
+        if (mod == 1)
+        {
+            soma += modifier;
+        }
+        final = soma;
     }
 
     printf("Resultado: %i\n", final);
